@@ -21,6 +21,7 @@ import org.rust.ide.inspections.import.ImportCandidate
 import org.rust.ide.inspections.import.ImportContext
 import org.rust.ide.inspections.import.import
 import org.rust.ide.settings.RsCodeInsightSettings
+import org.rust.lang.core.RsPsiPattern
 import org.rust.lang.core.macros.findElementExpandedFrom
 import org.rust.lang.core.psi.*
 import org.rust.lang.core.psi.ext.*
@@ -56,7 +57,7 @@ object RsCommonCompletionProvider : RsCompletionProvider() {
         val context = RsCompletionContext(
             element.implLookup,
             getExpectedTypeForEnclosingPathOrDotExpr(element),
-            isSimplePath = simplePathPattern.accepts(parameters.position)
+            isSimplePath = RsPsiPattern.simplePathPattern.accepts(parameters.position)
         )
 
         addCompletionVariants(element, result, context, processedPathNames)
@@ -226,20 +227,6 @@ object RsCommonCompletionProvider : RsCompletionProvider() {
 
     override val elementPattern: ElementPattern<PsiElement>
         get() = PlatformPatterns.psiElement().withParent(psiElement<RsReferenceElement>())
-
-    private val simplePathPattern: ElementPattern<PsiElement>
-        get() {
-            val simplePath = psiElement<RsPath>()
-                .with(object : PatternCondition<RsPath>("SimplePath") {
-                    override fun accepts(path: RsPath, context: ProcessingContext?): Boolean =
-                        path.kind == PathKind.IDENTIFIER &&
-                            path.path == null &&
-                            path.typeQual == null &&
-                            !path.hasColonColon &&
-                            path.ancestorStrict<RsUseSpeck>() == null
-                })
-            return PlatformPatterns.psiElement().withParent(simplePath)
-        }
 
     object Testmarks {
         val pathCompletionFromIndex = Testmark("pathCompletionFromIndex")
