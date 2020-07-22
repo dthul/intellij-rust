@@ -528,7 +528,7 @@ class RsResolveTest : RsResolveTestBase() {
         }
     """)
 
-    fun `test nested super`() = checkByCode("""
+    fun `test nested super 1`() = checkByCode("""
         mod foo {
             mod bar {
                 fn main() {
@@ -540,6 +540,33 @@ class RsResolveTest : RsResolveTestBase() {
 
         fn foo() {}
          //X
+    """)
+
+    fun `test nested super 2`() = checkByCode("""
+        mod foo {
+            mod bar {
+                use self::super::super::foo;
+                fn main() {
+                    foo();
+                   //^
+                }
+            }
+        }
+
+        fn foo() {}
+         //X
+    """)
+
+    fun `test function and mod with same name`() = checkByCode("""
+        mod foo {}
+
+        fn foo() {}
+         //X
+
+        fn main() {
+            foo();
+           //^
+        }
     """)
 
     fun `test format positional`() = checkByCode("""
